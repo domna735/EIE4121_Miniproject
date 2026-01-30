@@ -1,0 +1,47 @@
+{
+  "cross_validation": {
+    "logreg": {
+      "accuracy_mean": 0.99925,
+      "accuracy_std": 0.0015000000000000124,
+      "n_splits": 5
+    },
+    "linear_svm": {
+      "accuracy_mean": 0.99925,
+      "accuracy_std": 0.0009999999999999786,
+      "n_splits": 5
+    }
+  },
+  "exact_duplicate_overlap": {
+    "train_unique": 2691,
+    "test_unique": 761,
+    "exact_overlap_unique": 252,
+    "exact_overlap_frac_test_unique": 0.3311432325886991
+  },
+  "near_duplicate_test_to_train": {
+    "threshold": 0.98,
+    "near_duplicate_test_count": 268,
+    "near_duplicate_test_frac": 0.335,
+    "similarity_p95": 1.0,
+    "similarity_p99": 1.0
+  },
+  "length_bin_results": {
+    "logreg": {
+      "acc_by_bin": {
+        "(1.999, 69.0]": 1.0,
+        "(69.0, 88.6]": 0.9934640522875817,
+        "(88.6, 119.0]": 1.0,
+        "(119.0, 175.0]": 1.0,
+        "(175.0, 6446.0]": 1.0
+      }
+    },
+    "linear_svm": {
+      "acc_by_bin": {
+        "(1.999, 69.0]": 1.0,
+        "(69.0, 88.6]": 1.0,
+        "(88.6, 119.0]": 1.0,
+        "(119.0, 175.0]": 1.0,
+        "(175.0, 6446.0]": 1.0
+      }
+    }
+  }
+}

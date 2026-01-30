@@ -1,0 +1,18 @@
+{
+  "n_original": 4000,
+  "n_after_exact_dedup": 3200,
+  "metrics": {
+    "logreg": {
+      "accuracy": 0.9984375,
+      "precision": 0.9975062344139651,
+      "recall": 1.0,
+      "f1": 0.9987515605493134
+    },
+    "linear_svm": {
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    }
+  }
+}

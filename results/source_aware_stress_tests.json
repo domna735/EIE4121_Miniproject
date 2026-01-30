@@ -1,0 +1,30 @@
+{
+  "train_legit_test_phishing": {
+    "logreg": {
+      "accuracy": 0.918,
+      "precision": 0.8765765765765766,
+      "recall": 0.973,
+      "f1": 0.9222748815165877
+    },
+    "linear_svm": {
+      "accuracy": 0.9325,
+      "precision": 0.9008341056533827,
+      "recall": 0.972,
+      "f1": 0.935064935064935
+    }
+  },
+  "train_phishing_test_legit": {
+    "logreg": {
+      "accuracy": 0.9975,
+      "precision": 0.9950248756218906,
+      "recall": 1.0,
+      "f1": 0.9975062344139651
+    },
+    "linear_svm": {
+      "accuracy": 0.9975,
+      "precision": 0.996011964107677,
+      "recall": 0.999,
+      "f1": 0.9975037443834248
+    }
+  }
+}

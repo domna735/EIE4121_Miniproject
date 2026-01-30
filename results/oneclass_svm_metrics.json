@@ -1,0 +1,26 @@
+{
+  "one_class_svm": {
+    "accuracy": 0.4775,
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "roc_auc": 0.02448749999999998,
+    "avg_precision": 0.31025298711189414,
+    "human_train_size": 1600,
+    "human_train_dedup_size": 1082,
+    "human_test_size": 400,
+    "llm_eval_size": 400,
+    "nu": 0.05,
+    "svd_components": 200
+  },
+  "confusion_matrix": [
+    [
+      382,
+      18
+    ],
+    [
+      400,
+      0
+    ]
+  ]
+}

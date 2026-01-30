@@ -1,0 +1,28 @@
+{
+  "n_samples": 3200,
+  "n_groups": 3112,
+  "largest_group_size": 28,
+  "groups_gt1": 48,
+  "metrics": {
+    "logreg": {
+      "accuracy_mean": 0.9978125,
+      "accuracy_std": 0.0012499999999999734,
+      "precision_mean": 0.9964984854589918,
+      "recall_mean": 1.0,
+      "f1_mean": 0.9982451373565226,
+      "n_splits": 5,
+      "thr": 0.98,
+      "k_neighbors": 8
+    },
+    "linear_svm": {
+      "accuracy_mean": 0.999375,
+      "accuracy_std": 0.000765465544619754,
+      "precision_mean": 0.9989999437468358,
+      "recall_mean": 1.0,
+      "f1_mean": 0.9994993459854472,
+      "n_splits": 5,
+      "thr": 0.98,
+      "k_neighbors": 8
+    }
+  }
+}
