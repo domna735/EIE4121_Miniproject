@@ -1,0 +1,32 @@
+{
+  "metadata": {
+    "human_train": 1280,
+    "human_val": 320,
+    "human_test": 400,
+    "llm_eval": 400,
+    "tfidf_features": 20000,
+    "svd_dim": 128
+  },
+  "thresholds": {
+    "q95": 0.22382327601820023,
+    "q99": 0.3734984261210846
+  },
+  "by_threshold": {
+    "q95": {
+      "accuracy": 0.4775,
+      "precision": 0.125,
+      "recall": 0.0075,
+      "f1": 0.014150943396226415
+    },
+    "q99": {
+      "accuracy": 0.49875,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    }
+  },
+  "score_metrics": {
+    "roc_auc": 0.5772250000000001,
+    "avg_precision": 0.5199089862959703
+  }
+}

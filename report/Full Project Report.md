@@ -92,9 +92,9 @@ A key example is URL presence (has_url). In this dataset, phishing within human 
 
 ---
 
-## 5. Methods (two required methods)
+## 5. Methods and Justification
 
-Both required methods use a shared TF‑IDF representation of text.
+The primary task remains binary classification (human vs LLM). We use a shared text representation for supervised models, then compare both supervised and anomaly-style formulations.
 
 ### 5.1 Text representation: TF‑IDF
 
@@ -109,6 +109,12 @@ We then apply TF‑IDF with:
 - word n‑grams (1,2)
 - `min_df=2`, `max_df=0.95`
 
+Justification:
+
+- TF‑IDF is a strong and reproducible baseline for sparse text classification.
+- It supports transparent ablations (vocabulary limits, n-grams, dimensionality reduction).
+- It aligns with the course focus and keeps model behavior interpretable.
+
 ### 5.2 Method 1: TF‑IDF + Logistic Regression
 
 Logistic Regression provides a strong baseline for sparse text:
@@ -117,6 +123,12 @@ Logistic Regression provides a strong baseline for sparse text:
 - interpretable coefficients
 - robust linear classifier
 
+Justification:
+
+- For high-dimensional sparse text, linear decision boundaries are often competitive.
+- Logistic Regression offers calibrated scores and stable optimization.
+- Note: standard Logistic Regression does not use kernels directly; nonlinearity must be introduced via feature mappings.
+
 ### 5.3 Method 2: TF‑IDF + Linear SVM
 
 Linear SVM is widely used for text classification:
@@ -124,6 +136,52 @@ Linear SVM is widely used for text classification:
 - strong performance in high-dimensional sparse spaces
 - margin-maximizing decision boundary
 - efficient for TF‑IDF matrices
+
+Justification:
+
+- Linear SVM is a standard text-classification baseline and is usually more scalable than kernel SVM on sparse vectors.
+- In this project size, linear SVM provides both strong accuracy and low training complexity.
+
+### 5.4 Dimensionality control for TF‑IDF
+
+Because TF‑IDF dimensionality can be large (roughly vocabulary-sized), we add explicit feature-space controls:
+
+- sparse feature selection: TF‑IDF + chi-square (`SelectKBest`)
+- low-rank projection: TF‑IDF + Truncated SVD (LSA)
+
+Purpose:
+
+- reduce memory and runtime
+- test whether very high accuracy persists under compressed feature spaces
+- improve robustness by suppressing rare/noisy terms
+
+### 5.5 Nonlinear boundary exploration
+
+To address potential nonlinear separability, we add a nonlinear supervised variant:
+
+- TF‑IDF -> SVD -> RBF SVM (`SVC`)
+
+Why this design:
+
+- direct RBF SVM on raw sparse TF‑IDF is computationally expensive
+- SVD first gives a compact dense embedding where nonlinear kernels are tractable
+
+This lets us test whether nonlinear decision surfaces materially improve over linear baselines.
+
+### 5.6 Alternative anomaly formulation: autoencoder novelty detection
+
+Beyond one-class SVM / Isolation Forest, we add a neural autoencoder-style approach:
+
+- train only on human emails (normal data)
+- represent text with TF‑IDF + SVD + scaling
+- train an `MLPRegressor` autoencoder to reconstruct normal embeddings
+- use reconstruction error as anomaly score for LLM detection
+
+Rationale:
+
+- this formulation matches a practical cybersecurity setting where only trusted normal data may be available
+- it provides a structurally different hypothesis from LR/SVM and one-class margin methods
+- thresholding on human-validation reconstruction error allows explicit false-positive control
 
 ---
 
@@ -152,6 +210,28 @@ Baseline results for the primary task (human vs LLM) are saved in `results/basel
 | TF‑IDF + Linear SVM | 1.00000 | 1.00 | 1.00 | 1.00 |
 
 Confusion matrices are saved in `results/cm_logreg.png` and `results/cm_linear_svm.png`.
+
+### 7.1 Extended method results (dimensionality + nonlinear check)
+
+Measured results from `results/method_comparison_extended.json`:
+
+| Model | Effective Dim | Accuracy | Precision | Recall | F1 |
+|---|---:|---:|---:|---:|---:|
+| TF‑IDF + LogReg (full) | 92,827 | 0.99875 | 1.0000 | 0.9975 | 0.99875 |
+| TF‑IDF + chi2 + LogReg | 20,000 | 0.99875 | 1.0000 | 0.9975 | 0.99875 |
+| TF‑IDF + SVD + LogReg | 300 | 0.99750 | 0.9975 | 0.9975 | 0.99750 |
+| TF‑IDF + SVD + RBF SVM | 300 | 0.99875 | 0.9975 | 1.0000 | 0.99875 |
+
+Interpretation:
+
+- Reducing dimensionality from 92,827 to 20,000 with chi-square selection preserved baseline performance.
+- Aggressive reduction to 300 dimensions (SVD) caused only a very small drop for LogReg.
+- Nonlinear RBF SVM on 300-dim SVD features matched top-line accuracy, but had much slower prediction time than linear models.
+
+Efficiency note:
+
+- LogReg training became faster as dimensionality was reduced (about 0.10s full TF‑IDF -> 0.04s chi2 -> 0.01s SVD in this run).
+- RBF SVM remained computationally heavier at inference (about 0.108s prediction in this run), supporting linear models as the practical default for deployment.
 
 ---
 
@@ -232,6 +312,34 @@ Artifact:
 
 Result: text-space anomaly detection still yields LLM recall = 0; stylometry-space improves slightly but remains weak (best recall ≈ 0.02). This negative result suggests LLM emails are not “out-of-distribution” relative to human emails in these feature spaces.
 
+### 9.3 Autoencoder anomaly detection (added method update)
+
+We additionally include an autoencoder-style novelty detector in the notebook pipeline:
+
+- human-only training
+- TF‑IDF + SVD embedding
+- MLP reconstruction model
+- threshold by percentile of human validation reconstruction error
+
+Artifact path used by the updated notebook:
+
+- `results/autoencoder_anomaly_metrics.json`
+
+This experiment is intended to test whether reconstruction-based anomaly scoring generalizes better than one-class margin methods on this dataset.
+
+Measured results from `results/autoencoder_anomaly_metrics.json`:
+
+- score-level metrics: ROC AUC ≈ 0.577, AP ≈ 0.520
+- threshold at human validation q95:
+	- accuracy ≈ 0.4775, precision ≈ 0.125, recall ≈ 0.0075, F1 ≈ 0.0142
+- threshold at human validation q99:
+	- accuracy ≈ 0.4988, precision = 0, recall = 0, F1 = 0
+
+Interpretation:
+
+- Compared with One-Class SVM, the autoencoder improves ranking quality (AUC/AP), but practical detection at conservative thresholds remains weak.
+- This indicates partial separation in reconstruction error, but insufficient operational performance under low-false-positive settings.
+
 ---
 
 ## 10. Limitations
@@ -250,7 +358,11 @@ Key limitations / threats to validity:
 
 Two TF‑IDF linear baselines (Logistic Regression and Linear SVM) achieve very high performance on this dataset under random splits. Duplicate/near-duplicate checks indicate that random splitting can inflate performance, and a source-aware stress test shows a meaningful drop when training on legit-only and testing on phishing-only, suggesting sensitivity to distribution shift.
 
-As an exploratory beyond-scope contribution, anomaly detection (“negative learning”) was tested and found to be ineffective here; this negative finding helps clarify that LLM emails are not outliers relative to human emails under the chosen representations.
+Methodologically, the pipeline now also includes dimensionality-controlled supervised variants, a nonlinear SVM check, and an autoencoder anomaly formulation to more fully test the concerns around feature dimensionality, linearity assumptions, and generalization.
+
+Empirically, dimensionality reduction offers a strong efficiency-performance trade-off (near-identical accuracy with far fewer features), while nonlinear and anomaly formulations provide useful stress tests but no decisive practical advantage over the linear supervised baselines on this dataset.
+
+As an exploratory beyond-scope contribution, anomaly detection (“negative learning”) remains challenging here; this helps clarify that LLM emails are not necessarily clean outliers relative to human emails under the tested representations.
 
 ---
 
@@ -263,3 +375,4 @@ As an exploratory beyond-scope contribution, anomaly detection (“negative lear
 - Source-aware stress test: `results/source_aware_stress_tests.json`
 - Within-source phishing tasks: `results/phishing_within_source_metrics.json`
 - One-class negative learning: `results/oneclass_svm_metrics.json`, `results/oneclass_salvage_metrics.json`
+- Extended methods (dimensionality/nonlinear + autoencoder): `results/method_comparison_extended.json`, `results/autoencoder_anomaly_metrics.json`

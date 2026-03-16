@@ -136,3 +136,46 @@ Next:
 Update:
 - Ran a salvage sweep (nu tuning + Isolation Forest) in both TF-IDF+SVD space and a small stylometry/structure feature space.
 - Saved full results to `results/oneclass_salvage_metrics.json`. Outcome remained weak (text-space recall = 0; best stylometry-space recall ≈ 0.02).
+
+---
+
+## Methods justification refinement + notebook method expansion
+Intent:
+- Address reviewer concerns on (1) binary setup clarity, (2) TF-IDF dimensionality, (3) linear-only SVM choice, and (4) adding autoencoder anomaly detection.
+
+Action:
+- Updated report method section to explicitly justify:
+	- binary target definition (human vs LLM, phishing as auxiliary attribute)
+	- why linear LR/SVM are valid text baselines
+	- why LR has no native kernel form and how nonlinearity can still be introduced
+	- why dimensionality control is required for TF-IDF
+	- why a reconstruction-based anomaly model (autoencoder) is a meaningful alternative formulation
+- Extended notebook methods with new executable experiments:
+	- TF-IDF + chi-square feature selection + Logistic Regression
+	- TF-IDF + SVD + Logistic Regression
+	- TF-IDF + SVD + RBF SVM
+	- autoencoder-style anomaly detection using MLP reconstruction on human-only training data
+- Added JSON artifact outputs for the new method block:
+	- `results/method_comparison_extended.json`
+	- `results/autoencoder_anomaly_metrics.json`
+
+Result:
+- The project now has a clearer methods narrative and a broader empirical framework that directly addresses dimensionality, linearity, and anomaly-structure concerns.
+
+Decision / Interpretation:
+- Keep LR + Linear SVM as core required baselines for comparability.
+- Treat nonlinear and autoencoder methods as stress/extension checks rather than replacements.
+
+Next:
+- Execute the new notebook cells and report comparative trade-offs (accuracy vs complexity vs robustness) in the final write-up.
+
+Update:
+- Executed the new method-update notebook cell and generated:
+	- `results/method_comparison_extended.json`
+	- `results/autoencoder_anomaly_metrics.json`
+- Key measured outcomes:
+	- TF-IDF + chi2 + LogReg (20,000 features) matched full TF-IDF LogReg performance (accuracy 0.99875).
+	- TF-IDF + SVD + LogReg (300 dims) remained high (accuracy 0.9975).
+	- TF-IDF + SVD + RBF SVM (300 dims) reached accuracy 0.99875 but had heavier prediction cost than linear baselines.
+	- Autoencoder anomaly detection improved score-level ranking (ROC AUC ~0.577) versus one-class SVM, but thresholded detection remained weak (q95 recall ~0.0075; q99 recall 0).
+- Updated `report/Full Project Report.md` sections (Results/Conclusion) with these measured values.
